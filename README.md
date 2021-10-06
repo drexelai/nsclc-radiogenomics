@@ -10,15 +10,15 @@ Drexel AI 2021 Fall
 - [] preprocess clinical features: Alex
 - [] preprocess genomic features: Ethan
 - [] preprocess imaging features: Ethan, Alex, Satvik
-  - https://theaisummer.com/medical-image-python/ \
-- [] calculate correlation, clustering (PCA, hierachial clustering, distributions), and exclude highly correlative features \
-- [] fit a model (neural network, random forest, regression) \
-- [] evaulate performance \
-- [] write the paper \
-  - [] abstract \
-  - [] introduction \
-  - [] background \
-  - [] methods \
-  - [] results \
-  - [] conclusion/future work \
+  - https://theaisummer.com/medical-image-python/
+- [] calculate correlation, clustering (PCA, hierachial clustering, distributions), and exclude highly correlative features
+- [] fit a model (neural network, random forest, regression)
+- [] evaulate performance
+- [] write the paper
+  - [] abstract
+  - [] introduction
+  - [] background
+  - [] methods
+  - [] results
+  - [] conclusion/future work
   - [] figures/tables
