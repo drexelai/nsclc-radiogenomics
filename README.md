@@ -3,7 +3,7 @@ Drexel AI 2021 Fall
 
 # TASKS
 
-- [x] data set \
+- [x] data set 
   - https://wiki.cancerimagingarchive.net/display/Public/NSCLC+Radiogenomics \
 - [x] paper template on overleaf \
   - https://www.overleaf.com/4826185589tjyzkynzsbfb
