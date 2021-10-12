@@ -1,0 +1,5 @@
+pandas==1.3.0
+numpy==1.21.0
+pydicom==2.1.2
+matplotlib==3.4.2
+git+https://github.com/JoHof/lungmask

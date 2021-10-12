@@ -1,7 +1,15 @@
 # nsclc-radiogenomics
 Drexel AI 2021 Fall
 
-# TASKS
+# Setup
+
+Run the following in the root directory of this project in order to install all dependencies. 
+
+``` bash
+pip install -r requirements.txt
+```
+
+# Tasks
 
 - [x] data set
   - https://wiki.cancerimagingarchive.net/display/Public/NSCLC+Radiogenomics
@@ -9,6 +17,7 @@ Drexel AI 2021 Fall
   - https://www.overleaf.com/4826185589tjyzkynzsbfb
 - [] preprocess clinical features: Alex
 - [] preprocess genomic features: Ethan
+- [x] segment images: Ethan
 - [] preprocess imaging features: Ethan, Alex, Satvik
   - https://theaisummer.com/medical-image-python/
 - [] calculate correlation, clustering (PCA, hierachial clustering, distributions), and exclude highly correlative features
