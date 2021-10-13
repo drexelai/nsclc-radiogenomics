@@ -4,6 +4,7 @@ import os
 import pydicom
 import matplotlib.pyplot as plt
 import gzip
+import argparse
 
 from lungmask import mask
 import SimpleITK as sitk
@@ -50,7 +51,6 @@ def calcGLDMFeatures(segmentation, pixel_array):
 	return np.array([v for _, v in extractor.execute().items()])
 
 
-
 def calcFeatures(segmentation, pixel_array):
 	return np.concatenate([calcFirstOrderFeatures(segmentation, pixel_array), calcShapeBased3DFeatures(segmentation, pixel_array), calcShapeBased2DFeatures(segmentation, pixel_array), calcGLCMFeatures(segmentation, pixel_array), calcGLRLMFeatures(segmentation, pixel_array), calcGLSZMFeatures(segmentation, pixel_array), calcNGTDMFeatures(segmentation, pixel_array), calcGLDMFeatures(segmentation, pixel_array)])
 
@@ -75,15 +75,15 @@ def segmentLungs(imagepath):
 	return segmentation
 
 
-def main(rootdir):
-	
-	meta = pd.read_csv(os.path.join(rootdir, 'metadata.csv'))
-	patientsdir = os.path.join(rootdir, 'NSCLC Radiogenomics')
+def processImages(rootdir):
+	imagemeta = pd.read_csv(os.path.join(rootdir, 'NSCLC_Radiogenomics-6-1-21 Version 4/manifest-1622561851074/metadata.csv'))
+	patientmeta = pd.read_csv(os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv'))
+	patientsdir = os.path.join(rootdir, 'NSCLC_Radiogenomics-6-1-21 Version 4/manifest-1622561851074/NSCLC Radiogenomics')
 
 	results = {}
 
 	for patientid in os.listdir(patientsdir):
-		if patientid == '.DS_Store':
+		if patientid == '.DS_Store' or patientid not in patientmeta['Case ID'][patientmeta['rnaseq']]:
 			continue
 		patientdir = os.path.join(patientsdir, patientid)
 		for studyid in os.listdir(patientdir):
@@ -103,14 +103,35 @@ def main(rootdir):
 
 					results[patientid] = calcFeatures(segmentation, pixel_array)
 
+	return results
 
-def preprocessRNASeq(rnaseqloc):
-	filename = '/Volumes/Extended/drexelai/radiogenomics/NSCLC/GSE103584_R01_NSCLC_RNAseq.txt.gz'
 
-	data = pd.read_csv(gzip.open(filename), sep='\t', index_col=0)
+def preprocessRNASeq(rootdir):
+
+	rnaseqloc = os.path.join(rootdir, 'GSE103584_R01_NSCLC_RNAseq.txt.gz')
+	
+	rnaseqdata = pd.read_csv(gzip.open(rnaseqloc), sep='\t', index_col=0)
+	rnaseqdata = rnaseqdata.fillna(0)
+	rnaseqdata = rnaseqdata.drop(index=rnaseqdata.index[np.where(rnaseqdata.sum(axis=1) == 0)[0]])
+	rnaseqdata = rnaseqdata.apply(lambda x: (x - np.mean(x)) / np.std(x), axis=1)
+
+	return rnaseqdata
+
+
+def preprocessData(rootdir):
+	patientloc = os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv')
+	patientmeta = pd.read_csv(patientloc)
+
+	rnaseqdata = preprocessRNASeq(rootdir)
+
+	if 'rnaseq' not in patientmeta.columns:
+		patientmeta['rnaseq'] = [e in rnaseqdata.columns for e in patientmeta['Case ID']]
+		patientmeta.to_csv(patientloc, index=False)
+
+	processImages(rootdir)
 
 if __name__ == '__main__':
-	rootdir = '/Volumes/Extended/drexelai/radiogenomics/NSCLC/NSCLC_Radiogenomics-6-1-21 Version 4/manifest-1622561851074'
+	rootdir = '/Volumes/Extended/drexelai/radiogenomics/NSCLC/'
 
 	main(rootdir)
 
