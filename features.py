@@ -107,14 +107,11 @@ def processImages(rootdir):
 
 
 def preprocessRNASeq(rootdir):
-
 	rnaseqloc = os.path.join(rootdir, 'GSE103584_R01_NSCLC_RNAseq.txt.gz')
-	
 	rnaseqdata = pd.read_csv(gzip.open(rnaseqloc), sep='\t', index_col=0)
 	rnaseqdata = rnaseqdata.fillna(0)
 	rnaseqdata = rnaseqdata.drop(index=rnaseqdata.index[np.where(rnaseqdata.sum(axis=1) == 0)[0]])
 	rnaseqdata = rnaseqdata.apply(lambda x: (x - np.mean(x)) / np.std(x), axis=1)
-
 	return rnaseqdata
 
 
