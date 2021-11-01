@@ -15,7 +15,7 @@ pip install -r requirements.txt
   - https://wiki.cancerimagingarchive.net/display/Public/NSCLC+Radiogenomics
 - [x] paper template on overleaf
   - https://www.overleaf.com/4826185589tjyzkynzsbfb
-- [] preprocess clinical features: Alex
+- [X] preprocess clinical features: Alex
 - [] preprocess genomic features: Ethan
 - [x] segment images: Ethan
 - [] preprocess imaging features: Ethan, Alex, Satvik

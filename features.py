@@ -14,6 +14,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_fscore_support
 import xgboost as xgb
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OrdinalEncoder
+from sklearn.preprocessing import StandardScaler
 
 def calcFirstOrderFeatures(segmentation, pixel_array):
 	extractor = radiomics.firstorder.RadiomicsFirstOrder(pixel_array, segmentation)
@@ -121,6 +124,98 @@ def preprocessRNASeq(rootdir):
 	rnaseqdata = rnaseqdata.apply(lambda x: (x - np.mean(x)) / np.std(x), axis=1)
 	return rnaseqdata
 
+genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-032',
+       'R01-033', 'R01-034', 'R01-035', 'R01-037', 'R01-005', 'R01-147',
+       'R01-051', 'R01-043', 'R01-028', 'R01-052', 'R01-056', 'R01-057',
+       'R01-059', 'R01-060', 'R01-061', 'R01-062', 'R01-063', 'R01-066',
+       'R01-067', 'R01-068', 'R01-072', 'R01-080', 'R01-081', 'R01-154',
+       'R01-083', 'R01-084', 'R01-048', 'R01-077', 'R01-078', 'R01-003',
+       'R01-007', 'R01-012', 'R01-013', 'R01-015', 'R01-016', 'R01-017',
+       'R01-018', 'R01-021', 'R01-022', 'R01-026', 'R01-004', 'R01-014',
+       'R01-027', 'R01-029', 'R01-038', 'R01-039', 'R01-040', 'R01-041',
+       'R01-042', 'R01-046', 'R01-156', 'R01-049', 'R01-160', 'R01-054',
+       'R01-055', 'R01-064', 'R01-065', 'R01-069', 'R01-071', 'R01-073',
+       'R01-076', 'R01-148', 'R01-149', 'R01-079', 'R01-150', 'R01-089',
+       'R01-157', 'R01-158', 'R01-151', 'R01-152', 'R01-091', 'R01-159',
+       'R01-093', 'R01-094', 'R01-096', 'R01-097', 'R01-098', 'R01-099',
+       'R01-100', 'R01-101', 'R01-102', 'R01-103', 'R01-104', 'R01-105',
+       'R01-106', 'R01-107', 'R01-108', 'R01-109', 'R01-110', 'R01-111',
+       'R01-112', 'R01-113', 'R01-114', 'R01-115', 'R01-116', 'R01-117',
+       'R01-118', 'R01-119', 'R01-120', 'R01-121', 'R01-122', 'R01-123',
+       'R01-124', 'R01-125', 'R01-126', 'R01-127', 'R01-128', 'R01-129',
+       'R01-130', 'R01-131', 'R01-132', 'R01-133', 'R01-134', 'R01-135',
+       'R01-136', 'R01-137', 'R01-138', 'R01-139', 'R01-140', 'R01-141',
+       'R01-142', 'R01-144', 'R01-145', 'R01-146']
+
+
+def preprocess_clinical_data(data):
+	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
+	#Missing/improper value replacement
+	data["Weight (lbs)"].replace("Not Collected", 0, inplace=True)
+	data["Weight (lbs)"] = pd.to_numeric(data["Weight (lbs)"])
+	data["Weight (lbs)"].replace(0, data["Weight (lbs)"].mean(), inplace=True)
+	data["Pack Years"].replace("Not Collected", 0, inplace=True)
+	data["Pack Years"] = pd.to_numeric(data["Pack Years"])
+	data["Pack Years"].replace(0, data["Pack Years"].mean(), inplace=True) 
+	data["Pack Years"].replace(np.NaN, data["Quit Smoking Year"].mean(), inplace=True) 
+	data["%GG"].replace("Not Assessed", "0%", inplace=True)
+	recurr_dates = pd.to_datetime(data["Date of Recurrence"])
+	#Binning the Recurrence dates
+	data["Date of Recurrence"] = recurr_dates
+	r_dates = []
+	for date in data["Date of Recurrence"]:
+		if pd.isna(date.year):
+			r_dates.append("None")
+		elif date.year <= 1992:
+			r_dates.append("1-2")   
+		elif date.year > 1992 and date.year <= 1994:
+			r_dates.append("2-4")
+		elif date.year > 1994 and date.year <= 1996:
+			r_dates.append("4-6")
+		elif date.year > 1996 and date.year <= 1998:
+			r_dates.append("6-8")
+		else:
+			r_dates.append("8-10")
+	#Binning the Death dates
+	data["Date of Recurrence"] = r_dates
+	death = []
+	for days in data["Time to Death (days)"]:
+		if pd.isna(days):
+			death.append("None")
+		elif days/365 <= 2:
+			death.append("1-2")
+		elif days/365 > 2 and days/365 <=3:
+			death.append("2-3")
+		elif days/365 > 3 and days/365 <=4:
+			death.append("3-4")
+		elif days/365 > 4 and days/365 <=5:
+			death.append("4-5")
+		elif days/365 > 5 and days/365 <=6:
+			death.append("5-6")
+		elif days/365 > 6:
+			death.append("6-7")
+		else:
+			death.append("8-10")
+	data["Time to Death (years)"] = death
+	data.drop('Time to Death (days)', axis=1, inplace=True)
+	data = data[data["Case ID"].isin(genome_patients)]
+	#Encoding & Normalizing
+	ordinal_feats = ["Smoking status", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status"]
+	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
+
+	for o in ordinal_feats:
+		ordenc = OrdinalEncoder()
+		data[o] = ordenc.fit_transform(data[[o]])
+
+	for o in hotenc_feats:
+		hotenc = OneHotEncoder(handle_unknown='ignore') 
+		data[o] = hotenc.fit_transform(data[[o]])
+
+	for o in scaled_feats:
+		scaler = StandardScaler()
+		data[o] = scaler.fit_transform(data[[o]])      
+
 
 def preprocessClinicalData(rootdir):
 	pass
@@ -130,6 +225,8 @@ def preprocessClinicalData(rootdir):
 def preprocessData(rootdir):
 	patientloc = os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv')
 	patientmeta = pd.read_csv(patientloc)
+
+	patientmeta = preprocess_clinical_data(patientmeta)
 
 	rnaseqdata = preprocessRNASeq(rootdir)
 
