@@ -149,7 +149,7 @@ genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-0
        'R01-142', 'R01-144', 'R01-145', 'R01-146']
 
 
-def preprocess_clinical_data(data):
+def preprocessClinicalData(data):
 	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
 	#Missing/improper value replacement
 	data["Weight (lbs)"].replace("Not Collected", 0, inplace=True)
@@ -250,16 +250,13 @@ def display_correlation_matrix(data):
 	sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
 	            square=True, annot=True,linewidths=.5, cbar_kws={"shrink": .5})
 
-def preprocessClinicalData(rootdir):
-	pass
-
 
 
 def preprocessData(rootdir):
 	patientloc = os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv')
 	patientmeta = pd.read_csv(patientloc)
 
-	patientmeta = preprocess_clinical_data(patientmeta)
+	patientmeta = preprocessClinicalData(patientmeta)
 
 	rnaseqdata = preprocessRNASeq(rootdir)
 
