@@ -11,10 +11,13 @@ from lungmask import mask
 import SimpleITK as sitk
 import radiomics
 
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import precision_recall_fscore_support
+import xgboost as xgb
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
-
 
 def calcFirstOrderFeatures(segmentation, pixel_array):
 	extractor = radiomics.firstorder.RadiomicsFirstOrder(pixel_array, segmentation)
@@ -80,7 +83,7 @@ def segmentLungs(imagepath):
 	return segmentation
 
 
-def processImages(rootdir):
+def preprocessImagingData(rootdir):
 	imagemeta = pd.read_csv(os.path.join(rootdir, 'NSCLC_Radiogenomics-6-1-21 Version 4/manifest-1622561851074/metadata.csv'))
 	patientmeta = pd.read_csv(os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv'))
 	patientsdir = os.path.join(rootdir, 'NSCLC_Radiogenomics-6-1-21 Version 4/manifest-1622561851074/NSCLC Radiogenomics')
@@ -102,6 +105,9 @@ def processImages(rootdir):
 				for image in os.listdir(study2dir):
 					if image == '.DS_Store':
 						continue
+
+					# TODO: select the most representative image per person
+
 					imagepath = os.path.join(study2dir, image)
 					segmentation = segmentLungs(imagepath)
 					pixel_array = pydicom.dcmread(imagepath).pixel_array
@@ -244,6 +250,11 @@ def display_correlation_matrix(data):
 	sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
 	            square=True, annot=True,linewidths=.5, cbar_kws={"shrink": .5})
 
+def preprocessClinicalData(rootdir):
+	pass
+
+
+
 def preprocessData(rootdir):
 	patientloc = os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv')
 	patientmeta = pd.read_csv(patientloc)
@@ -256,7 +267,31 @@ def preprocessData(rootdir):
 		patientmeta['rnaseq'] = [e in rnaseqdata.columns for e in patientmeta['Case ID']]
 		patientmeta.to_csv(patientloc, index=False)
 
-	processImages(rootdir)
+	imagedata = preprocessImagingData(rootdir)
+	clinicaldata = preprocessClinicalData(rootdir)
+
+	data = pd.concat([rnaseqdata, imagedata, clinicaldata])
+	data = data.dropna(axis=1, how='any')
+	y = (patientmeta.loc[[e in data.columns.values for e in patientmeta.loc[:, 'Case ID']], 'Recurrence'] == 'yes').values.astype(int)
+	X = np.transpose(data.values)
+
+	return X, y
+
+
+
+def runRandomForest(X_train, X_test, y_train, y_test): 
+	model = RandomForestClassifier()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def main(rootdir):
+	X, y = preprocessData(rootdir)
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
+	runRandomForest(X_train, X_test, y_train, y_test)
+
+
 
 if __name__ == '__main__':
 	rootdir = '/Volumes/Extended/drexelai/radiogenomics/NSCLC/'
