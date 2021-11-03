@@ -239,7 +239,9 @@ def preprocessClinicalData(data):
 	data["Non smoker"] = ns
 	data["Current smoker"] = cs
 	data.drop('Smoking status', axis=1, inplace=True)
-	data["Recurrence Location"].replace(np.NaN, "none", inplace=True) 
+	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
+
+	return data 
 
 def display_correlation_matrix(data):
 	""" Displays a correlation matrix for a dataset """
