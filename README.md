@@ -9,6 +9,12 @@ Run the following in the root directory of this project in order to install all 
 pip install -r requirements.txt
 ```
 
+# Backgound
+- https://pubs.rsna.org/doi/full/10.1148/ryai.2020200029
+- https://arxiv.org/abs/2104.14420
+- https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7252460/
+- https://www.frontiersin.org/articles/10.3389/fonc.2020.570465/full
+
 # Tasks
 
 - [x] data set
