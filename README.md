@@ -22,9 +22,9 @@ pip install -r requirements.txt
 - [x] paper template on overleaf
   - https://www.overleaf.com/4826185589tjyzkynzsbfb
 - [X] preprocess clinical features: Alex
-- [] preprocess genomic features: Ethan
+- [x] preprocess genomic features: Ethan
 - [x] segment images: Ethan
-- [] preprocess imaging features: Ethan, Alex, Satvik
+- [x] preprocess imaging features: Ethan, Alex, Satvik
   - https://theaisummer.com/medical-image-python/
 - [] calculate correlation, clustering (PCA, hierachial clustering, distributions), and exclude highly correlative features
 - [] fit a model (neural network, random forest, regression)
