@@ -101,6 +101,8 @@ def preprocessImagingData(rootdir):
 				if studyid2 == '.DS_Store':
 					continue
 				study2dir = os.path.join(studydir, studyid2)
+				
+				
 				for image in os.listdir(study2dir):
 					if image == '.DS_Store':
 						continue
@@ -201,7 +203,7 @@ def preprocess_clinical_data(data):
 	data = data[data["Case ID"].isin(genome_patients)]
 	#Encoding & Normalizing
 	ordinal_feats = ["Smoking status", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status"]
-	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity", "Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
 	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
 
 	for o in ordinal_feats:
@@ -261,9 +263,9 @@ def main(rootdir):
 
 
 if __name__ == '__main__':
-	rootdir = '/Volumes/Extended/drexelai/radiogenomics/NSCLC/'
+	rootdir = '/Users/ethanmoyer/Projects/drexelai/NSCLC_small'
 
-	main(rootdir)
+	# main(rootdir)
 
 
 
