@@ -5,6 +5,7 @@ import pydicom
 import matplotlib.pyplot as plt
 import gzip
 import argparse
+import seaborn as sns
 
 from lungmask import mask
 import SimpleITK as sitk
@@ -150,7 +151,7 @@ genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-0
        'R01-142', 'R01-144', 'R01-145', 'R01-146']
 
 
-def preprocess_clinical_data(data):
+def preprocessClinicalData(data):
 	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
 	#Missing/improper value replacement
 	data["Weight (lbs)"].replace("Not Collected", 0, inplace=True)
@@ -202,8 +203,13 @@ def preprocess_clinical_data(data):
 	data.drop('Time to Death (days)', axis=1, inplace=True)
 	data = data[data["Case ID"].isin(genome_patients)]
 	#Encoding & Normalizing
-	ordinal_feats = ["Smoking status", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status"]
-	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity", "Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+# <<<<<<< HEAD
+# 	ordinal_feats = ["Smoking status", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status"]
+# 	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity", "Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+# =======
+	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status"]
+	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+# >>>>>>> 9e60fe9738b5feb616f36dfb6b0163830b01589d
 	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
 
 	for o in ordinal_feats:
@@ -218,9 +224,40 @@ def preprocess_clinical_data(data):
 		scaler = StandardScaler()
 		data[o] = scaler.fit_transform(data[[o]])      
 
+		
+	fm = []
+	ns = []
+	cs = []
 
-def preprocessClinicalData(rootdir):
-	pass
+	for status in data["Smoking status"]:
+		if status == "Former":
+			fm.append(1)
+			ns.append(0)
+			cs.append(0)
+		elif status == "Nonsmoker":
+			fm.append(0)
+			ns.append(1)
+			cs.append(0)
+		elif status == "Current":
+			fm.append(0)
+			ns.append(0)
+			cs.append(1)
+	data["Former smoker"] = fm
+	data["Non smoker"] = ns
+	data["Current smoker"] = cs
+	data.drop('Smoking status', axis=1, inplace=True)
+	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
+
+	return data 
+
+def display_correlation_matrix(data):
+	""" Displays a correlation matrix for a dataset """
+	corr = data.corr()
+	mask = np.triu(np.ones_like(corr, dtype=bool))
+	f, ax = plt.subplots(figsize=(50, 50))
+	cmap = sns.diverging_palette(20, 230, as_cmap=True)
+	sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+	            square=True, annot=True,linewidths=.5, cbar_kws={"shrink": .5})
 
 
 
@@ -228,7 +265,7 @@ def preprocessData(rootdir):
 	patientloc = os.path.join(rootdir, 'NSCLCR01Radiogenomic_DATA_LABELS_2018-05-22_1500-shifted.csv')
 	patientmeta = pd.read_csv(patientloc)
 
-	patientmeta = preprocess_clinical_data(patientmeta)
+	patientmeta = preprocessClinicalData(patientmeta)
 
 	rnaseqdata = preprocessRNASeq(rootdir)
 
