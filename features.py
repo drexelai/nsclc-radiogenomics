@@ -151,6 +151,7 @@ genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-0
        'R01-142', 'R01-144', 'R01-145', 'R01-146']
 
 
+
 def preprocessClinicalData(data):
 	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
 	#Missing/improper value replacement
@@ -202,29 +203,7 @@ def preprocessClinicalData(data):
 	data["Time to Death (years)"] = death
 	data.drop('Time to Death (days)', axis=1, inplace=True)
 	data = data[data["Case ID"].isin(genome_patients)]
-	#Encoding & Normalizing
-# <<<<<<< HEAD
-# 	ordinal_feats = ["Smoking status", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status"]
-# 	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity", "Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
-# =======
-	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status"]
-	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
-# >>>>>>> 9e60fe9738b5feb616f36dfb6b0163830b01589d
-	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
-
-	for o in ordinal_feats:
-		ordenc = OrdinalEncoder()
-		data[o] = ordenc.fit_transform(data[[o]])
-
-	for o in hotenc_feats:
-		hotenc = OneHotEncoder(handle_unknown='ignore') 
-		data[o] = hotenc.fit_transform(data[[o]])
-
-	for o in scaled_feats:
-		scaler = StandardScaler()
-		data[o] = scaler.fit_transform(data[[o]])      
-
-		
+  
 	fm = []
 	ns = []
 	cs = []
@@ -246,9 +225,26 @@ def preprocessClinicalData(data):
 	data["Non smoker"] = ns
 	data["Current smoker"] = cs
 	data.drop('Smoking status', axis=1, inplace=True)
+	#Encoding & Normalizing
+	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status"]
+	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
+	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
 	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
+	for o in ordinal_feats:
+		ordenc = OrdinalEncoder()
+		data[o] = ordenc.fit_transform(data[[o]])
+
+	for o in hotenc_feats:
+		hotenc = OneHotEncoder(handle_unknown='ignore') 
+		data[o] = hotenc.fit_transform(data[[o]])
+
+	for o in scaled_feats:
+		scaler = StandardScaler()
+		data[o] = scaler.fit_transform(data[[o]])      
 
 	return data 
+
+
 
 def display_correlation_matrix(data):
 	""" Displays a correlation matrix for a dataset """
