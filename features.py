@@ -15,6 +15,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_fscore_support
 import xgboost as xgb
+from xgb import XGBClassifier
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import OrdinalEncoder
 from sklearn.preprocessing import StandardScaler
@@ -283,6 +284,13 @@ def preprocessData(rootdir):
 
 def runRandomForest(X_train, X_test, y_train, y_test): 
 	model = RandomForestClassifier()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def runXGBoost(X_train, X_test, y_train, y_test):
+	model = XGBClassifier()
 	model.fit(X_train, y_train)
 	y_pred = model.predict(X_test)
 	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
