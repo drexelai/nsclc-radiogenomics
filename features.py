@@ -292,6 +292,41 @@ def runRandomForest(X_train, X_test, y_train, y_test):
 	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
 	return precision, recall, fbeta_score
 
+def runDecisionTree(X_train, X_test, y_train, y_test):
+	model = DecisionTreeClassifier()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def runMLP(X_train, X_test, y_train, y_test):
+	model = MPLClassifier()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def runAdaBoost(X_train, X_test, y_train, y_test):
+	model = AdaBoostClassifier()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def runNaiveBayes(X_train, X_test, y_train, y_test):
+	model = GaussianNB()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
+def runLogisticRegression(X_train, X_test, y_train, y_test):
+	model = LogisticRegression()
+	model.fit(X_train, y_train)
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
+
 def main(rootdir):
 	X, y = preprocessData(rootdir)
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
