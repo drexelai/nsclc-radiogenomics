@@ -11,6 +11,10 @@ from lungmask import mask
 import SimpleITK as sitk
 import radiomics
 
+
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras.applications import DenseNet121
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import precision_recall_fscore_support
@@ -335,6 +339,17 @@ def main(rootdir):
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.2)
 	runRandomForest(X_train, X_test, y_train, y_test)
 
+	
+def runDenseNet(X_train, X_test, y_train, y_test):
+	# basically a CNN where every layer is connected with each other making them much
+	#  denser than traditional CNN's and likely better for our application, and they experimentally scale really well
+	"""Weights are initialized to pretrained ImageNet, can be set to random if needed, and No pooling"""
+	model = DenseNet121(weights="imagenet", input_shape=X_train.shape)
+	model.compile(loss="sparse_categorical_crossentropy", optimizer= keras.optimizers.Nadam(learning_rate=0.001),metrics=["accuracy"])
+	model.fit(X_train, y_train, epochs=20, validation_data=(X_test, y_test))
+	y_pred = model.predict(X_test)
+	precision, recall, fbeta_score, _ = precision_recall_fscore_support(y_test, y_pred)
+	return precision, recall, fbeta_score
 
 
 if __name__ == '__main__':
