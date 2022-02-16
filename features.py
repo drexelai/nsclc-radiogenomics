@@ -168,8 +168,9 @@ def preprocessClinicalData(data):
 	data["Pack Years"].replace(0, data["Pack Years"].mean(), inplace=True) 
 	data["Pack Years"].replace(np.NaN, data["Quit Smoking Year"].mean(), inplace=True) 
 	data["%GG"].replace("Not Assessed", "0%", inplace=True)
-	recurr_dates = pd.to_datetime(data["Date of Recurrence"])
+ 
 	#Binning the Recurrence dates
+	recurr_dates = pd.to_datetime(data["Date of Recurrence"])
 	data["Date of Recurrence"] = recurr_dates
 	r_dates = []
 	for date in data["Date of Recurrence"]:
@@ -185,8 +186,46 @@ def preprocessClinicalData(data):
 			r_dates.append("6-8")
 		else:
 			r_dates.append("8-10")
-	#Binning the Death dates
 	data["Date of Recurrence"] = r_dates
+	#Binning CT dates
+	ct_dates = pd.to_datetime(data["CT Date"])
+	data["CT Date"] = ct_dates
+	ct = []
+	for date in data["CT Date"]:
+		if pd.isna(date.year):
+			ct.append("None")
+		elif date.year <= 1992:
+			ct.append("1-2")   
+		elif date.year > 1992 and date.year <= 1994:
+			ct.append("2-4")
+		elif date.year > 1994 and date.year <= 1996:
+			ct.append("4-6")
+		elif date.year > 1996 and date.year <= 1998:
+			ct.append("6-8")
+		else:
+			ct.append("8-10")
+	data["CT Date"] = ct
+	#Binning PET dates
+	data["PET Date"].replace("Not Collected","10/10/1995", inplace=True)
+	pt_dates = pd.to_datetime(data["PET Date"])
+	data["PET Date"] = pt_dates
+	pet_dates = []
+	for date in data["PET Date"]:
+		if pd.isna(date.year):
+			pet_dates.append("None")
+		elif date.year <= 1992:
+			pet_dates.append("1-2")   
+		elif date.year > 1992 and date.year <= 1994:
+			pet_dates.append("2-4")
+		elif date.year > 1994 and date.year <= 1996:
+			pet_dates.append("4-6")
+		elif date.year > 1996 and date.year <= 1998:
+			pet_dates.append("6-8")
+		else:
+			pet_dates.append("8-10")
+	data["PET Date"] = pet_dates
+
+	#Binning the Death dates
 	death = []
 	for days in data["Time to Death (days)"]:
 		if pd.isna(days):
@@ -208,7 +247,7 @@ def preprocessClinicalData(data):
 	data["Time to Death (years)"] = death
 	data.drop('Time to Death (days)', axis=1, inplace=True)
 	data = data[data["Case ID"].isin(genome_patients)]
-  
+		
 	fm = []
 	ns = []
 	cs = []
@@ -230,22 +269,26 @@ def preprocessClinicalData(data):
 	data["Non smoker"] = ns
 	data["Current smoker"] = cs
 	data.drop('Smoking status', axis=1, inplace=True)
+	data.drop('Date of Death', axis=1, inplace=True)
+	data.drop('Date of Last Known Alive', axis=1, inplace=True)
+	data["Quit Smoking Year"].replace(np.NaN, 0, inplace=True)
+	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
+	data["rnaseq"] = data["rnaseq"].astype(int)
 	#Encoding & Normalizing
-	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status"]
+	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status", "Adjuvant Treatment"]
 	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
 	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
-	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
+	
 	for o in ordinal_feats:
 		ordenc = OrdinalEncoder()
-		data[o] = ordenc.fit_transform(data[[o]])
+		data[[o]] = ordenc.fit_transform(data[[o]])
+	
 
-	for o in hotenc_feats:
-		hotenc = OneHotEncoder(handle_unknown='ignore') 
-		data[o] = hotenc.fit_transform(data[[o]])
+	data = pd.get_dummies(data, columns=hotenc_feats)
 
 	for o in scaled_feats:
 		scaler = StandardScaler()
-		data[o] = scaler.fit_transform(data[[o]])      
+		data[[o]] = scaler.fit_transform(data[[o]])
 
 	return data 
 
