@@ -155,8 +155,9 @@ genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-0
        'R01-136', 'R01-137', 'R01-138', 'R01-139', 'R01-140', 'R01-141',
        'R01-142', 'R01-144', 'R01-145', 'R01-146']
 
-def preprocessClinicalData(data):
+def preprocessClinicalData(dataloc):
 	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
+	data = pd.read_csv(dataloc)
 	#Missing/improper value replacement
 	data["Weight (lbs)"].replace("Not Collected", 0, inplace=True)
 	data["Weight (lbs)"] = pd.to_numeric(data["Weight (lbs)"])
@@ -291,7 +292,7 @@ def preprocessClinicalData(data):
 		scaler = StandardScaler()
 		data[[o]] = scaler.fit_transform(data[[o]])
 
-	return data 
+	return data
 
 
 
