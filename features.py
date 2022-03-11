@@ -155,8 +155,6 @@ genome_patients = ['R01-023', 'R01-024', 'R01-006', 'R01-153', 'R01-031', 'R01-0
        'R01-136', 'R01-137', 'R01-138', 'R01-139', 'R01-140', 'R01-141',
        'R01-142', 'R01-144', 'R01-145', 'R01-146']
 
-
-
 def preprocessClinicalData(data):
 	"""Fills in missing values, standardizes, one-hot & categorically encodes, and returns a dataframe ready to be split into train and test sets"""
 	#Missing/improper value replacement
@@ -175,17 +173,17 @@ def preprocessClinicalData(data):
 	r_dates = []
 	for date in data["Date of Recurrence"]:
 		if pd.isna(date.year):
-			r_dates.append("None")
+			r_dates.append(0)
 		elif date.year <= 1992:
-			r_dates.append("1-2")   
+			r_dates.append(1)   
 		elif date.year > 1992 and date.year <= 1994:
-			r_dates.append("2-4")
+			r_dates.append(2)
 		elif date.year > 1994 and date.year <= 1996:
-			r_dates.append("4-6")
+			r_dates.append(3)
 		elif date.year > 1996 and date.year <= 1998:
-			r_dates.append("6-8")
+			r_dates.append(3)
 		else:
-			r_dates.append("8-10")
+			r_dates.append(3)
 	data["Date of Recurrence"] = r_dates
 	#Binning CT dates
 	ct_dates = pd.to_datetime(data["CT Date"])
@@ -193,17 +191,17 @@ def preprocessClinicalData(data):
 	ct = []
 	for date in data["CT Date"]:
 		if pd.isna(date.year):
-			ct.append("None")
+			ct.append(0)
 		elif date.year <= 1992:
-			ct.append("1-2")   
+			ct.append(1)   
 		elif date.year > 1992 and date.year <= 1994:
-			ct.append("2-4")
+			ct.append(2)
 		elif date.year > 1994 and date.year <= 1996:
-			ct.append("4-6")
+			ct.append(3)
 		elif date.year > 1996 and date.year <= 1998:
-			ct.append("6-8")
+			ct.append(3)
 		else:
-			ct.append("8-10")
+			ct.append(3)
 	data["CT Date"] = ct
 	#Binning PET dates
 	data["PET Date"].replace("Not Collected","10/10/1995", inplace=True)
@@ -212,24 +210,25 @@ def preprocessClinicalData(data):
 	pet_dates = []
 	for date in data["PET Date"]:
 		if pd.isna(date.year):
-			pet_dates.append("None")
+			pet_dates.append(0)
 		elif date.year <= 1992:
-			pet_dates.append("1-2")   
+			pet_dates.append(1)   
 		elif date.year > 1992 and date.year <= 1994:
-			pet_dates.append("2-4")
+			pet_dates.append(2)
 		elif date.year > 1994 and date.year <= 1996:
-			pet_dates.append("4-6")
+			pet_dates.append(3)
 		elif date.year > 1996 and date.year <= 1998:
-			pet_dates.append("6-8")
+			pet_dates.append(3)
 		else:
-			pet_dates.append("8-10")
+			pet_dates.append(3)
 	data["PET Date"] = pet_dates
 
 	#Binning the Death dates
+	"""
 	death = []
 	for days in data["Time to Death (days)"]:
 		if pd.isna(days):
-			death.append("None")
+			death.append(0)
 		elif days/365 <= 2:
 			death.append("1-2")
 		elif days/365 > 2 and days/365 <=3:
@@ -245,7 +244,9 @@ def preprocessClinicalData(data):
 		else:
 			death.append("8-10")
 	data["Time to Death (years)"] = death
+	"""
 	data.drop('Time to Death (days)', axis=1, inplace=True)
+
 	data = data[data["Case ID"].isin(genome_patients)]
 		
 	fm = []
@@ -275,7 +276,7 @@ def preprocessClinicalData(data):
 	data["Recurrence Location"].replace(np.NaN, "none", inplace=True)
 	data["rnaseq"] = data["rnaseq"].astype(int)
 	#Encoding & Normalizing
-	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion","Time to Death (years)", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status", "Adjuvant Treatment"]
+	ordinal_feats = ["Former smoker", "Non smoker","Current smoker", "%GG","Pathological T stage", "Pathological N stage", "Pathological M stage", "Histopathological Grade", "Lymphovascular invasion", "Date of Recurrence", "Survival Status", "Recurrence", "Recurrence Location", "Chemotherapy", "Radiation", "EGFR mutation status", "KRAS mutation status", "ALK translocation status", "Adjuvant Treatment"]
 	hotenc_feats = ["Patient affiliation", "Gender", "Ethnicity","Tumor Location (choice=RUL)", "Tumor Location (choice=RML)", "Tumor Location (choice=RLL)", "Tumor Location (choice=LUL)","Tumor Location (choice=LLL)", "Tumor Location (choice=L Lingula)", "Tumor Location (choice=Unknown)", "Histology ", "Pleural invasion (elastic, visceral, or parietal)"]
 	scaled_feats = ["Weight (lbs)", "Age at Histological Diagnosis","Pack Years", "Quit Smoking Year", "Days between CT and surgery"]
 	
